@@ -4,7 +4,6 @@ g.bind(next(c.list("screen")))
 g.setResolution(80,25)
 
 local sdk={}
-sdk.region="Ekstroyan"
 
 function sdk.clear(bg)
   g.setBackground(bg or 0x000000)
@@ -36,15 +35,6 @@ end
 
 function sdk.wait()
   return computer.pullSignal()
-end
-
-function sdk.checkRegion(cardregion)
-  if cardregion and cardregion~=sdk.region then
-    sdk.clear()
-    sdk.center("Wrong Region: "..cardregion,0xFF0000)
-    return false
-  end
-  return true
 end
 
 function sdk.messageBox(text,time)
