@@ -4,7 +4,6 @@ g.bind(next(c.list("screen")))
 g.setResolution(80,25)
 
 local sdk={}
-
 sdk.region="Ekstroyan"
 
 function sdk.clear(bg)
@@ -28,7 +27,7 @@ function sdk.button(x,y,w,h,text,fg,bg)
   g.fill(x,y,w,h," ")
   g.setForeground(fg or 0x00FF00)
   g.set(x+math.floor((w-#text)/2),y+math.floor(h/2),text)
-  return {x1=x,y1=y,x2=x+w-1,y2=y+h-1}
+  return {x1=x,y1=y,x2=x+w-1,y2=y+h-1,label=text}
 end
 
 function sdk.clicked(btn,x,y)
@@ -46,6 +45,23 @@ function sdk.checkRegion(cardregion)
     return false
   end
   return true
+end
+
+function sdk.messageBox(text,time)
+  sdk.clear()
+  sdk.center(text,0xFFFFFF)
+  local t=os.clock()+ (time or 2)
+  repeat until os.clock()>=t
+end
+
+function sdk.progress(text,steps,delay)
+  sdk.clear()
+  for i=1,steps do
+    sdk.clear()
+    sdk.center(text.." ["..i.."/"..steps.."]",0x00FF00)
+    local t=os.clock()+(delay or 0.3)
+    repeat until os.clock()>=t
+  end
 end
 
 return sdk
