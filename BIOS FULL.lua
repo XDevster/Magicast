@@ -1,0 +1,139 @@
+local c,computer=component,computer
+local s=next(c.list("screen"))
+local g=c.proxy(next(c.list("gpu")))
+g.setResolution(80,25)
+g.setBackground(0x000000)
+g.fill(1,1,80,25," ")
+
+local region="Ekstroyan"
+
+local function drawBG()
+  g.setBackground(0x000000)
+  g.fill(1,1,80,25," ")
+end
+
+local function drawLogo()
+  g.setForeground(0x00FF00)
+  g.set(36,25,"Magicast")
+end
+
+local function spiral()
+  local cx,cy=40,12
+  local a,st=0,0.15
+  for i=1,160 do
+    a=a+st
+    local rad=i/16
+    local x=cx+math.floor(math.cos(a)*rad)
+    local y=cy+math.floor(math.sin(a)*rad)
+    for dx=-1,1 do
+      for dy=-1,1 do
+        if x+dx>=1 and x+dx<=80 and y+dy>=1 and y+dy<=25 then
+          g.setForeground(0x00FF00)
+          g.set(x+dx,y+dy,"█")
+        end
+      end
+    end
+    for _=1,30000 do end
+  end
+end
+
+local function btn(x,y,w,h,t)
+  g.setBackground(0x003300)
+  g.fill(x,y,w,h," ")
+  g.setForeground(0x00FF00)
+  g.set(x+1,y+1,t)
+  return{x1=x,x2=x+w-1,y1=y,y2=y+h-1}
+end
+
+local function showCopy()
+  drawBG()
+  g.setForeground(0xFFFFFF)
+  g.set(20,12,"Magicast made by XDevster")
+  g.set(20,14,"Magicast under MIT LICENSE")
+  computer.beep(440,2)
+end
+
+local function bootGame()
+  showCopy()
+  drawBG()
+  spiral()
+  drawLogo()
+  for _=1,200000 do end
+  local found=false
+  for addr in component.list("filesystem") do
+    local fs=c.proxy(addr)
+    if fs.exists("gamecast.lua") or fs.exists("game.lua") then
+      found=true
+      local fname=fs.exists("gamecast.lua") and "gamecast.lua" or "game.lua"
+      local h=fs.open(fname)
+      local code=""
+      repeat
+        local ch=fs.read(h,math.huge)
+        if ch then code=code..ch end
+      until not ch
+      fs.close(h)
+      local cardregion=code:match("cardregion%s*=%s*['\"]([^'\"]+)['\"]")
+      if cardregion and cardregion~=region then
+        drawBG()
+        g.setForeground(0xFF0000)
+        g.set(20,12,"Error: wrong region "..cardregion)
+        return
+      end
+      local prog=load(code,fname)
+      if prog then pcall(prog) end
+      return
+    end
+  end
+  if not found then
+    drawBG()
+    g.setForeground(0xFF0000)
+    g.set(30,12,"Disk not found")
+  end
+end
+
+local function drawRegion()
+  drawBG()
+  spiral()
+  drawLogo()
+  g.setForeground(0x00FF00)
+  if region~="Ekstroyan" then
+    g.set(20,10,"Region mismatch, continuing...")
+  else
+    g.set(20,10,"Region verified: "..region)
+  end
+  local back=btn(34,16,12,3,"")
+  while true do
+    local e,_,x,y=computer.pullSignal()
+    if e=="touch" and x>=back.x1 and x<=back.x2 and y>=back.y1 and y<=back.y2 then
+      return
+    end
+  end
+end
+
+local function mainMenu()
+  while true do
+    drawBG()
+    spiral()
+    drawLogo()
+    local play=btn(36,12,8,3,"PLAY")
+    local regionBtn=btn(50,12,18,3,"CHECK REGION")
+    local shutdown=btn(36,20,12,3,"SHUTDOWN")
+    while true do
+      local e,_,x,y=computer.pullSignal()
+      if e=="touch" then
+        if x>=play.x1 and x<=play.x2 and y>=play.y1 and y<=play.y2 then
+          bootGame()
+          break
+        elseif x>=regionBtn.x1 and x<=regionBtn.x2 and y>=regionBtn.y1 and y<=regionBtn.y2 then
+          drawRegion()
+          break
+        elseif x>=shutdown.x1 and x<=shutdown.x2 and y>=shutdown.y1 and y<=shutdown.y2 then
+          computer.shutdown()
+        end
+      end
+    end
+  end
+end
+
+spiral()
+mainMenu()
