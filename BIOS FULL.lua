@@ -5,7 +5,7 @@ g.setResolution(80,25)
 g.setBackground(0x000000)
 g.fill(1,1,80,25," ")
 
-local region="Ekstroyan"
+local region="Ekstroyan" --Сделал от нефиг делать лучше просто оставить
 
 local function drawBG()
   g.setBackground(0x000000)
