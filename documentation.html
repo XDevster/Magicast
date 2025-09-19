@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Magicast SDK Documentation</title>
+<style>
+  body { font-family: Arial, sans-serif; background-color: #1e1e1e; color: #ffffff; padding: 20px; line-height: 1.6; }
+  h1, h2, h3 { color: #00ff00; }
+  pre { background-color: #2d2d2d; padding: 10px; overflow-x: auto; }
+  code { color: #ffcc00; }
+  a { color: #00ffff; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  hr { border: 1px solid #444; }
+</style>
+</head>
+<body>
+
+<h1>🎮 Magicast SDK Full Documentation</h1>
+
+<p>Magicast SDK allows developers to create games for the <strong>Magicast BIOS</strong> with utilities for drawing, buttons, messages, progress animations, event handling, and region checks.</p>
+
+<hr>
+
+<h2>📂 Cartridge Layout</h2>
+
+<p>A valid Magicast cartridge <strong>must contain</strong>:</p>
+
+<pre>
+/gamecast.lua    &lt;- Main game file (mandatory)
+/sdk.lua         &lt;- SDK file (mandatory)
+/MAGICAST_SDK.md &lt;- Documentation file (optional)
+</pre>
+
+<p><strong>Important:</strong> The main game file must be named <code>gamecast.lua</code>. If the BIOS cannot find this file, the game will not run.</p>
+
+<p>Load the SDK inside <code>gamecast.lua</code>:</p>
+
+<pre><code>local sdk = loadfile("/sdk.lua")()</code></pre>
+
+<hr>
+
+<h2>✨ SDK Functions</h2>
+
+<h3>sdk.clear(bg)</h3>
+<p>Clears the entire screen. Optional <code>bg</code> color (default black).</p>
+
+<h3>sdk.print(x,y,text,fg,bg)</h3>
+<p>Draws text at <code>(x,y)</code> with optional foreground (<code>fg</code>) and background (<code>bg</code>) colors.</p>
+
+<h3>sdk.center(text,fg,bg)</h3>
+<p>Prints text centered horizontally on row 12.</p>
+
+<h3>sdk.button(x,y,w,h,text,fg,bg)</h3>
+<p>Draws a button on the screen and returns a table describing its bounds:</p>
+
+<pre><code>{x1=..., y1=..., x2=..., y2=..., label="..."}</code></pre>
+
+<h3>sdk.clicked(btn,x,y)</h3>
+<p>Checks if the coordinates <code>(x,y)</code> are inside the given button. Returns <code>true</code> or <code>false</code>.</p>
+
+<h3>sdk.wait()</h3>
+<p>Waits for any system event (e.g., <code>touch</code>, <code>key_down</code>) and returns the event information.</p>
+
+<h3>sdk.checkRegion(cardregion)</h3>
+<p>Verifies if the cartridge’s region matches the console region.</p>
+<ul>
+  <li>Returns <code>false</code> and shows an error if regions mismatch.</li>
+  <li>Returns <code>true</code> if regions match or no region is declared.</li>
+</ul>
+
+<h3>sdk.messageBox(text,time)</h3>
+<p>Displays a centered message on the screen for <code>time</code> seconds.</p>
+
+<h3>sdk.progress(text,steps,delay)</h3>
+<p>Displays a progress/loading animation with a label.</p>
+<ul>
+  <li><code>text</code> → Label shown.</li>
+  <li><code>steps</code> → Number of steps in the progress.</li>
+  <li><code>delay</code> → Seconds per step.</li>
+</ul>
+
+<h3>sdk.region</h3>
+<p>Holds the console's current region (default <code>"Ekstroyan"</code>).</p>
+
+<hr>
+
+<h2>🕹 Example Game (<code>gamecast.lua</code>)</h2>
+
+<pre><code>local cardregion = "Ekstroyan"
+local sdk = loadfile("/sdk.lua")()
+
+if not sdk.checkRegion(cardregion) then return end
+
+sdk.clear()
+sdk.center("Welcome to Magicast!",0x00FF00)
+
+local play = sdk.button(30,15,20,3,"PLAY")
+
+while true do
+  local e,_,x,y = sdk.wait()
+  if e=="touch" and sdk.clicked(play,x,y) then
+    sdk.messageBox("Loading...",2)
+    sdk.progress("Starting Game",5,0.5)
+    sdk.clear()
+    sdk.center("Game Started!",0xFFFFFF)
+    break
+  end
+end</code></pre>
+
+<hr>
+
+<h2>🔧 Summary</h2>
+
+<ul>
+  <li><strong>gamecast.lua</strong> is mandatory on the cartridge.</li>
+  <li><strong>sdk.lua</strong> must be included alongside it.</li>
+  <li>SDK functions handle drawing, buttons, messages, progress, event handling, and region checks.</li>
+  <li>Region checking is optional but supported.</li>
+  <li>Fully compatible with Magicast BIOS.</li>
+</ul>
+
+<hr>
+
+<h2>💡 Tips</h2>
+
+<ul>
+  <li>Always place the SDK <strong>on the cartridge with the game</strong>.</li>
+  <li>Use <code>sdk.messageBox</code> and <code>sdk.progress</code> for loading screens.</li>
+  <li>Use <code>sdk.checkRegion</code> to ensure games run only in the intended console region.</li>
+  <li>Keep the cartridge structure consistent for BIOS compatibility.</li>
+</ul>
+
+</body>
+</html>
